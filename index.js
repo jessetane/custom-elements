@@ -39,17 +39,36 @@ if (!document.defineElement) {
   var registry = {}
   var selectors = ''
   var appendChild = Element.prototype.appendChild
+  var insertBefore = Element.prototype.insertBefore
   var removeChild = Element.prototype.removeChild
   var remove = Element.prototype.remove
   var realCreateElement = document.createElement
 
   Element.prototype.appendChild = function (child) {
+    child.remove()
     appendChild.call(this, child)
     if (registry[child.nodeName] && child.attachedCallback) {
       child.__attached__ = true
       child.attachedCallback()
     }
     return child
+  }
+
+  Element.prototype.insertBefore = function (child, otherChild) {
+    child.remove()
+    insertBefore.call(this, child, otherChild)
+    if (registry[child.nodeName] && child.attachedCallback) {
+      child.__attached__ = true
+      child.attachedCallback()
+    }
+    return child
+  }
+
+  Element.prototype.replaceChild = function (child, otherChild) {
+    this.insertBefore(child, otherChild)
+    if (otherChild) {
+      return otherChild.remove()
+    }
   }
 
   Element.prototype.removeChild = function (child) {
@@ -62,6 +81,7 @@ if (!document.defineElement) {
   }
 
   Element.prototype.remove = function () {
+    if (!this.parentNode) return
     remove.call(this)
     if (registry[this.nodeName] && this.detachedCallback) {
       this.__attached__ = false
