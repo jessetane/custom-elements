@@ -1,0 +1,15 @@
+{
+  "name": "custom-elements",
+  "version": "1.0.0",
+  "description": "Partial shim of the latest custom elements spec draft",
+  "scripts": {
+    "test": "cd test; watchify ./index.js -o ./build.js & ROOT=. app-server & wait"
+  },
+  "devDependencies": {
+    "app-server": "^2.0.0",
+    "tape": "^4.5.1",
+    "watchify": "^3.7.0"
+  },
+  "author": "jesse.tane@gmail.com",
+  "license": "Public domain"
+}
