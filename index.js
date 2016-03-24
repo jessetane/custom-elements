@@ -118,7 +118,7 @@ if (!document.defineElement) {
           var child = added[n]
           var constructor = registry[child.nodeName]
           if (constructor) {
-            if (child.__constructed__ === false) {
+            if (child.__constructed__ === undefined) {
               Object.setPrototypeOf(child, constructor.prototype)
               constructor.call(child)
             }
