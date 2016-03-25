@@ -153,6 +153,8 @@ if (!document.defineElement) {
     }
   }).observe(document, {
     childList: true,
+    attributes: true,
+    attributeOldValue: true,
     subtree: true
   })
 }
