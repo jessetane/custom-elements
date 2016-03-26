@@ -51,12 +51,36 @@ tape('attribute changed callback works', function (t) {
   }
 })
 
-tape('innerHTML works (asynchronously)', function (t) {
-  t.plan(1)
+tape('innerHTML works', function (t) {
+  t.plan(4)
   var wrapper = document.createElement('div')
   document.body.appendChild(wrapper)
-  wrapper.innerHTML = '<x-thing></x-thing>'
+
+  // undefined element already exists in the dom
+  wrapper.innerHTML = '<x-nested-thing></x-nested-thing>'
+  function NestedThing () {
+    HTMLElement.call(this)
+    this.innerHTML += '<x-thing></x-thing>'
+  }
+  NestedThing.prototype = Object.create(HTMLElement.prototype)
+  document.defineElement('x-nested-thing', NestedThing)
+  t.equal(document.querySelector('x-thing').innerHTML, '42')
+  wrapper.firstElementChild.remove()
+
+  // constructor called directly via document.createElement
+  var el = document.createElement('x-nested-thing')
+  wrapper.appendChild(el)
+  t.equal(document.querySelector('x-thing').innerHTML, '42')
+  el.remove()
+
+  // recursive innerHTML
+  wrapper.innerHTML = '<x-nested-thing><x-nested-thing></x-nested-thing></x-nested-thing>'
   setTimeout(function () {
-    t.equal(document.querySelector('x-thing').innerHTML, '42')
+    Array.prototype.slice.call(
+      document.querySelectorAll('x-thing')
+    ).forEach(function (thing) {
+      t.equal(thing.innerHTML, '42')
+    })
+    wrapper.remove()
   })
 })
