@@ -5,14 +5,20 @@ function defineElement (name, constructor, options) {
   }
   registry[name] = constructor
   registry[name.toUpperCase()] = constructor
-  selectors = selectors.length ? (',' + name) : name
+  selectors += selectors.length ? (',' + name) : name
+  scan(document, name)
+}
+
+function scan (parent, selector) {
   Array.prototype.slice.call(
-    document.querySelectorAll(name)
-  ).forEach(function (element) {
-    Object.setPrototypeOf(element, constructor.prototype)
-    constructor.call(element)
-    if (element.attachedCallback) {
-      element.attachedCallback()
+    parent.querySelectorAll(selector || selectors)
+  ).forEach(function (child) {
+    var constructor = registry[child.nodeName]
+    Object.setPrototypeOf(child, constructor.prototype)
+    constructor.call(child)
+    scan(child)
+    if (child.attachedCallback) {
+      child.attachedCallback()
     }
   })
 }
@@ -96,6 +102,7 @@ if (!document.defineElement) {
     if (constructor) {
       Object.setPrototypeOf(element, constructor.prototype)
       constructor.call(element)
+      scan(element)
     }
     return element
   }
