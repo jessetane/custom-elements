@@ -2,19 +2,27 @@ module.exports = Thing
 
 function Thing () {
   HTMLElement.call(this)
-  this.innerHTML = '4'
+  this.value = '42'
 }
+
+Thing.observedAttributes = [
+  'color'
+]
 
 Thing.prototype = Object.create(
   HTMLElement.prototype
 )
 
-Thing.prototype.attachedCallback = function () {
-  this.innerHTML += '2'
+Thing.prototype.attributeChangedCallback = function (name, oldValue, newValue) {
+  this[name] = newValue
 }
 
-Thing.prototype.detachedCallback = function () {
+Thing.prototype.connectedCallback = function () {
+  this.innerHTML += this.value
+}
+
+Thing.prototype.disconnectedCallback = function () {
   this.innerHTML = '0'
 }
 
-document.defineElement('x-thing', Thing)
+customElements.define('x-thing', Thing)

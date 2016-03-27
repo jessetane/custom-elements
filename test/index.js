@@ -2,13 +2,15 @@ require('../index.js')
 var tape = require('tape')
 var Thing = require('./thing.js')
 
-tape('constructors are called', function (t) {
-  t.plan(1)
+tape('constructors are called and attributes are initialized', function (t) {
+  t.plan(3)
   var thing = document.createElement('x-thing')
-  t.equal(thing.innerHTML, '4')
+  t.equal(thing.innerHTML, '')
+  t.equal(thing.value, '42')
+  t.equal(thing.color, null)
 })
 
-tape('attached and detacted callbacks are called synchronously', function (t) {
+tape('connected and disconnected callbacks are called', function (t) {
   t.plan(2)
   var thing = document.createElement('x-thing')
   document.body.appendChild(thing)
@@ -17,54 +19,67 @@ tape('attached and detacted callbacks are called synchronously', function (t) {
   t.equal(thing.innerHTML, '0')
 })
 
-tape('attribute changed callback works', function (t) {
+tape('attribute changed callback works synchronously for observed attributes changed via {set,remove}Attribute', function (t) {
   t.plan(9)
   var thing = document.createElement('x-thing')
   document.body.appendChild(thing)
-  step1()
-  function step1 () {
-    thing.attributeChangedCallback = function (name, oldValue, newValue) {
-      t.equal(name, 'data-testing')
-      t.equal(oldValue, null)
-      t.equal(newValue, 'much')
-      step2()
-    }
-    thing.setAttribute('data-testing', 'much')
+  thing.attributeChangedCallback = function (name, oldValue, newValue) {
+    t.fail()
   }
-  function step2 () {
-    thing.attributeChangedCallback = function (name, oldValue, newValue) {
-      t.equal(name, 'data-testing')
-      t.equal(oldValue, 'much')
-      t.equal(newValue, 'wow')
-      step3()
-    }
-    thing.setAttribute('data-testing', 'wow')
+  thing.setAttribute('texture', 'rough')
+  thing.attributeChangedCallback = function (name, oldValue, newValue) {
+    t.equal(name, 'color')
+    t.equal(oldValue, null)
+    t.equal(newValue, '#F00')
   }
-  function step3 () {
-    thing.attributeChangedCallback = function (name, oldValue, newValue) {
-      t.equal(name, 'data-testing')
-      t.equal(oldValue, 'wow')
-      t.equal(newValue, null)
-      thing.remove()
-    }
-    thing.removeAttribute('data-testing')
+  thing.setAttribute('color', '#F00')
+  thing.attributeChangedCallback = function (name, oldValue, newValue) {
+    t.equal(name, 'color')
+    t.equal(oldValue, '#F00')
+    t.equal(newValue, '#00F')
   }
+  thing.setAttribute('color', '#00F')
+  thing.attributeChangedCallback = function (name, oldValue, newValue) {
+    t.equal(name, 'color')
+    t.equal(oldValue, '#00F')
+    t.equal(newValue, null)
+  }
+  thing.removeAttribute('color')
+  thing.remove()
 })
 
-tape('innerHTML works', function (t) {
-  t.plan(4)
+tape('attribute changed callback works asynchrounously for observed attributes NOT changed via {set,remove}Attribute', function (t) {
+  t.plan(3)
+  var thing = document.createElement('x-thing')
+  document.body.appendChild(thing)
+  Thing.observedAttributes.push('draggable')
+  thing.attributeChangedCallback = function (name, oldValue, newValue) {
+    t.equal(name, 'draggable')
+    t.equal(oldValue, null)
+    t.equal(newValue, 'true')
+    Thing.observedAttributes.pop()
+    thing.draggable = false
+    thing.remove()
+  }
+  thing.draggable = true
+})
+
+tape('innerHTML', function (t) {
+  t.plan(6)
   var wrapper = document.createElement('div')
   document.body.appendChild(wrapper)
 
-  // undefined element already exists in the dom
+  // element that already exists in the dom gets upgraded
   wrapper.innerHTML = '<x-nested-thing></x-nested-thing>'
   function NestedThing () {
     HTMLElement.call(this)
-    this.innerHTML += '<x-thing></x-thing>'
+    // spec says you shouldn't add children in constructors, though I don't see why not?
+    this.innerHTML += '<x-thing color=#F0F></x-thing>'
   }
   NestedThing.prototype = Object.create(HTMLElement.prototype)
-  document.defineElement('x-nested-thing', NestedThing)
+  customElements.define('x-nested-thing', NestedThing)
   t.equal(document.querySelector('x-thing').innerHTML, '42')
+  t.equal(document.querySelector('x-thing').color, '#F0F')
   wrapper.firstElementChild.remove()
 
   // constructor called directly via document.createElement
@@ -76,9 +91,11 @@ tape('innerHTML works', function (t) {
   // recursive innerHTML
   wrapper.innerHTML = '<x-nested-thing><x-nested-thing></x-nested-thing></x-nested-thing>'
   setTimeout(function () {
-    Array.prototype.slice.call(
+    var things = Array.prototype.slice.call(
       document.querySelectorAll('x-thing')
-    ).forEach(function (thing) {
+    )
+    t.equal(things.length, 2)
+    things.forEach(function (thing) {
       t.equal(thing.innerHTML, '42')
     })
     wrapper.remove()
