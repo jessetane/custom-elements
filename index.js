@@ -11,13 +11,12 @@ CustomElement.prototype = Object.create(
 function CustomElementsRegistry () {}
 
 CustomElementsRegistry.prototype.define = function (name, constructor, options) {
-  name = name.toUpperCase()
-  if (name in registry) {
+  var nodeName = name.toUpperCase()
+  if (nodeName in registry) {
     throw new Error('NotSupportedError')
   }
-  registry[name] = constructor
+  registry[nodeName] = constructor
   selectors += selectors.length ? (',' + name) : name
-  selectors = selectors.toLowerCase()
   upgradeChildren(document, name, true)
 }
 
@@ -129,7 +128,10 @@ function arrayIncludes (array, item) {
   return includes
 }
 
-if (!document.defineElement) {
+if (!window.customElements) {
+  window.customElements = new CustomElementsRegistry()
+  window.HTMLElement = CustomElement
+
   var registry = {}
   var selectors = ''
   var attributeChanges = []
@@ -196,10 +198,6 @@ if (!document.defineElement) {
     }
     return element
   }
-
-  window.HTMLElement = CustomElement
-
-  window.customElements = new CustomElementsRegistry()
 
   new MutationObserver(function (changes) {
     if (!selectors) return
