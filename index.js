@@ -1,8 +1,29 @@
 function CustomElement () {
-  this.custom = true
-  this.defined = true
-  this.isConnected = false
+  this.__custom = true
+  this.__defined = true
+  this.__isConnected = false
 }
+
+Object.defineProperty(CustomElement.prototype, 'custom', {
+  get: function () {
+    return this.__custom
+  }
+})
+
+Object.defineProperty(CustomElement.prototype, 'defined', {
+  get: function () {
+    return this.__defined
+  }
+})
+
+Object.defineProperty(CustomElement.prototype, 'isConnected', {
+  get: function () {
+    return this.__isConnected
+  },
+  set: function (isConnected) {
+    this.__isConnected = isConnected
+  }
+})
 
 CustomElement.prototype = Object.create(
   HTMLElement.prototype
@@ -31,14 +52,14 @@ function upgradeChildren (element, selector, connected) {
 function upgradeElement (element, connected) {
   var constructor = registry[element.nodeName]
   if (constructor) {
-    if (!element.defined) {
+    if (!element.__defined) {
       constructElement(element, constructor)
     }
   }
   upgradeChildren(element, selectors, connected)
   if (constructor) {
-    if (connected && element.connectedCallback && !element.isConnected) {
-      element.isConnected = true
+    if (connected && element.connectedCallback && !element.__isConnected) {
+      element.__isConnected = true
       element.connectedCallback()
     }
   }
@@ -59,7 +80,7 @@ function constructElement (element, constructor) {
 }
 
 function maybeUpgradeChildren (element) {
-  var connected = element.isConnected || document.contains(element)
+  var connected = element.__isConnected || document.contains(element)
   if (connected) {
     upgradeChildren(
       element,
@@ -76,8 +97,8 @@ function disconnectChildren (element) {
 }
 
 function disconnectElement (element, recursive) {
-  if (element.custom && element.disconnectedCallback && element.isConnected === true) {
-    element.isConnected = false
+  if (element.__custom && element.disconnectedCallback && element.__isConnected === true) {
+    element.__isConnected = false
     element.disconnectedCallback()
   }
   if (recursive) {
@@ -86,7 +107,7 @@ function disconnectElement (element, recursive) {
 }
 
 function changeAttribute (remove, element, name, value) {
-  var callback = element.custom && element.attributeChangedCallback
+  var callback = element.__custom && element.attributeChangedCallback
   if (callback) {
     var oldValue = element.getAttribute(name)
   }
@@ -228,7 +249,7 @@ if (!window.customElements) {
         }
       } else if (change.type === 'attributes') {
         child = change.target
-        if (child.custom && child.attributeChangedCallback) {
+        if (child.__custom && child.attributeChangedCallback) {
           var attributeName = change.attributeName
           var oldValue = change.oldValue
           var lastKnownChange = attributeChanges[0]
