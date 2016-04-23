@@ -4,6 +4,10 @@ function CustomElement () {
   this.__isConnected = false
 }
 
+CustomElement.prototype = Object.create(
+  HTMLElement.prototype
+)
+
 Object.defineProperty(CustomElement.prototype, 'custom', {
   get: function () {
     return this.__custom
@@ -24,10 +28,6 @@ Object.defineProperty(CustomElement.prototype, 'isConnected', {
     this.__isConnected = isConnected
   }
 })
-
-CustomElement.prototype = Object.create(
-  HTMLElement.prototype
-)
 
 function CustomElementsRegistry () {}
 
