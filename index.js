@@ -169,14 +169,18 @@ if (!window.customElements) {
   Element.prototype.appendChild = function (child) {
     child.remove()
     appendChild.call(this, child)
-    maybeUpgradeChildren(this)
+    if (selectors) {
+      maybeUpgradeChildren(this)
+    }
     return child
   }
 
   Element.prototype.insertBefore = function (child, otherChild) {
     child.remove()
     insertBefore.call(this, child, otherChild)
-    maybeUpgradeChildren(this)
+    if (selectors) {
+      maybeUpgradeChildren(this)
+    }
     return child
   }
 
@@ -189,7 +193,7 @@ if (!window.customElements) {
 
   Element.prototype.removeChild = function (child) {
     removeChild.call(this, child)
-    if (child.nodeType === 1) {
+    if (selectors && child.nodeType === 1) {
       disconnectElement(child, true)
     }
     return child
@@ -198,7 +202,7 @@ if (!window.customElements) {
   Element.prototype.remove = function () {
     if (!this.parentNode) return
     remove.call(this)
-    if (this.nodeType === 1) {
+    if (selectors && this.nodeType === 1) {
       disconnectElement(this, true)
     }
     return this
