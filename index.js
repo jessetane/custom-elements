@@ -55,14 +55,12 @@ function upgradeElement (element, connected) {
     if (!element.__defined) {
       constructElement(element, constructor)
     }
-  }
-  upgradeChildren(element, selectors, connected)
-  if (constructor) {
     if (connected && element.connectedCallback && !element.__isConnected) {
       element.__isConnected = true
       element.connectedCallback()
     }
   }
+  upgradeChildren(element, selectors, connected)
 }
 
 function constructElement (element, constructor) {
