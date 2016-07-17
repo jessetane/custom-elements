@@ -64,7 +64,11 @@ function upgradeElement (element, connected) {
 }
 
 function constructElement (element, constructor) {
-  Object.setPrototypeOf(element, constructor.prototype)
+  if (Object.setPrototypeOf) {
+    Object.setPrototypeOf(element, constructor.prototype)
+  } else {
+    element.__proto__ = constructor.prototype
+  }
   constructor.call(element)
   if (element.attributeChangedCallback && constructor.observedAttributes) {
     constructor.observedAttributes.forEach(function (attributeName) {
