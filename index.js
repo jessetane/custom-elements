@@ -5,6 +5,8 @@ window.HTMLElement = CustomElement
 function CustomElement () {
   if (hasNative) {
     return Reflect.construct(_HTMLElement, arguments, this.constructor)
+  } else {
+    return this
   }
 }
 
