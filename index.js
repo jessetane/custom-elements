@@ -1,33 +1,16 @@
+var hasNative = !!window.customElements
+var _HTMLElement = window.HTMLElement
+window.HTMLElement = CustomElement
+
 function CustomElement () {
-  this.__custom = true
-  this.__defined = true
-  this.__isConnected = false
+  if (hasNative) {
+    return Reflect.construct(_HTMLElement, arguments, this.constructor)
+  }
 }
 
 CustomElement.prototype = Object.create(
-  HTMLElement.prototype
+  _HTMLElement.prototype
 )
-
-Object.defineProperty(CustomElement.prototype, 'custom', {
-  get: function () {
-    return this.__custom
-  }
-})
-
-Object.defineProperty(CustomElement.prototype, 'defined', {
-  get: function () {
-    return this.__defined
-  }
-})
-
-Object.defineProperty(CustomElement.prototype, 'isConnected', {
-  get: function () {
-    return this.__isConnected
-  },
-  set: function (isConnected) {
-    this.__isConnected = isConnected
-  }
-})
 
 function CustomElementsRegistry () {}
 
@@ -69,6 +52,9 @@ function constructElement (element, constructor) {
   } else {
     element.__proto__ = constructor.prototype
   }
+  element.__custom = true
+  element.__defined = true
+  element.__isConnected = false
   constructor.call(element)
   if (element.attributeChangedCallback && constructor.observedAttributes) {
     constructor.observedAttributes.forEach(function (attributeName) {
@@ -155,8 +141,6 @@ function arrayIncludes (array, item) {
 
 if (!window.customElements) {
   window.customElements = new CustomElementsRegistry()
-  window.HTMLElement = CustomElement
-
   var registry = {}
   var selectors = ''
   var attributeChanges = []
@@ -167,6 +151,27 @@ if (!window.customElements) {
   var setAttribute = Element.prototype.setAttribute
   var removeAttribute = Element.prototype.removeAttribute
   var createElement = document.createElement
+
+  Object.defineProperty(Element.prototype, 'custom', {
+    get: function () {
+      return this.__custom
+    }
+  })
+
+  Object.defineProperty(Element.prototype, 'defined', {
+    get: function () {
+      return this.__defined
+    }
+  })
+
+  Object.defineProperty(Element.prototype, 'isConnected', {
+    get: function () {
+      return this.__isConnected
+    },
+    set: function (isConnected) {
+      this.__isConnected = isConnected
+    }
+  })
 
   Element.prototype.appendChild = function (child) {
     child.remove()
