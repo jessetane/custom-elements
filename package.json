@@ -1,6 +1,6 @@
 {
   "name": "custom-elements",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Partial shim of the latest custom elements spec draft",
   "scripts": {
     "test": "cd test; watchify ./index.js -o ./build.js & ROOT=. app-server & wait"
