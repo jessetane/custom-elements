@@ -248,7 +248,7 @@ if (!window.customElements) {
         var n = -1
         while (++n < childCount) {
           var child = added[n]
-          if (child.nodeType === 1) {
+          if (child.nodeType === 1 && !child.__custom) {
             upgradeElement(child, selectors, true)
           }
         }
