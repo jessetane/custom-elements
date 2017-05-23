@@ -149,7 +149,6 @@ if (!window.customElements) {
   var appendChild = Element.prototype.appendChild
   var insertBefore = Element.prototype.insertBefore
   var removeChild = Element.prototype.removeChild
-  var remove = Element.prototype.remove
   var setAttribute = Element.prototype.setAttribute
   var removeAttribute = Element.prototype.removeAttribute
   var createElement = document.createElement
@@ -176,7 +175,9 @@ if (!window.customElements) {
   })
 
   Element.prototype.appendChild = function (child) {
-    child.remove()
+    if (child.parentNode) {
+      child.parentNode.removeChild(child)
+    }
     appendChild.call(this, child)
     if (selectors) {
       maybeUpgradeChildren(this)
@@ -185,7 +186,9 @@ if (!window.customElements) {
   }
 
   Element.prototype.insertBefore = function (child, otherChild) {
-    child.remove()
+    if (child.parentNode) {
+      child.parentNode.removeChild(child)
+    }
     insertBefore.call(this, child, otherChild)
     if (selectors) {
       maybeUpgradeChildren(this)
@@ -195,9 +198,10 @@ if (!window.customElements) {
 
   Element.prototype.replaceChild = function (child, otherChild) {
     this.insertBefore(child, otherChild)
-    if (otherChild) {
-      return otherChild.remove()
+    if (otherChild && otherChild.parentNode) {
+      this.removeChild(otherChild)
     }
+    return otherChild
   }
 
   Element.prototype.removeChild = function (child) {
@@ -209,12 +213,9 @@ if (!window.customElements) {
   }
 
   Element.prototype.remove = function () {
-    if (!this.parentNode) return
-    remove.call(this)
-    if (selectors && this.nodeType === 1) {
-      disconnectElement(this, true)
+    if (this.parentNode) {
+      this.parentNode.removeChild(this)
     }
-    return this
   }
 
   Element.prototype.setAttribute = function (name, value) {
