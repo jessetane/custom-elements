@@ -236,6 +236,18 @@ if (!window.customElements) {
     return element
   }
 
+  if (!document.contains) {
+    document.contains = function (el) {
+      var parent = el.parentNode
+      while (parent && parent !== document) {
+        parent = parent.parentNode
+      }
+      if (parent === document) {
+        return true
+      }
+    }
+  }
+
   new MutationObserver(function (changes) {
     if (!selectors) return
     var changeCount = changes.length
