@@ -14,9 +14,9 @@ CustomElement.prototype = Object.create(
   _HTMLElement.prototype
 )
 
-function CustomElementsRegistry () {}
+function CustomElementRegistry () {}
 
-CustomElementsRegistry.prototype.define = function (name, constructor, options) {
+CustomElementRegistry.prototype.define = function (name, constructor, options) {
   var nodeName = name.toUpperCase()
   if (nodeName in registry) {
     throw new Error('NotSupportedError')
@@ -143,9 +143,9 @@ function arrayIncludes (array, item) {
 
 if (!hasNative) {
   if (window.customElements) {
-    window.customElements.define = CustomElementsRegistry.prototype.define
+    window.customElements.define = CustomElementRegistry.prototype.define
   } else {
-    window.customElements = new CustomElementsRegistry()
+    window.customElements = new CustomElementRegistry()
   }
   var registry = {}
   var selectors = ''
