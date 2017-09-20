@@ -1,4 +1,4 @@
-var hasNative = !!window.customElements
+var hasNative = !!window.customElements && !/firefox/i.test(window.navigator.userAgent)
 var _HTMLElement = window.HTMLElement
 window.HTMLElement = CustomElement
 
@@ -141,8 +141,12 @@ function arrayIncludes (array, item) {
   return includes
 }
 
-if (!window.customElements) {
-  window.customElements = new CustomElementsRegistry()
+if (!hasNative) {
+  if (window.customElements) {
+    window.customElements.define = CustomElementsRegistry.prototype.define
+  } else {
+    window.customElements = new CustomElementsRegistry()
+  }
   var registry = {}
   var selectors = ''
   var attributeChanges = []
